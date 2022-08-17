@@ -5,11 +5,14 @@ from typing import List
 from dataclasses import dataclass, field
 from gridappsd import GridAPPSD, topics as t
 from gridappsd_cim import *
-from shared_methods import initialize_objects
+
+from gridappsd_cim.loaders.connection import Connection
+from gridappsd_cim.loaders.blazegraph_connection import BlazeGraphConnection
 
 @dataclass
 class DistributedModel:
-    feeder: Feeder
+    feeder: cim.Feeder
+    connection: Connection
     addressable_equipment: dict[str, object] = field(default_factory=dict)
     unaddressable_equipment: dict[str, object] = field(default_factory=dict)
     connectivity_nodes: dict[str, object] = field(default_factory=dict)
@@ -28,13 +31,17 @@ class DistributedModel:
     assert gapps.connected
     
     def add_to_catalog(obj:object, catalog:dict) -> dict:
-        if obj.mRID == None: raise ValueError('Object must contain an mRID')
-        if obj.mRID not in catalog: catalog[obj.mRID] = obj
+        if obj.mRID == None:
+            raise ValueError('Object must contain an mRID')
+        if obj.mRID not in catalog:
+            catalog[obj.mRID] = obj
         return catalog
 
     def add_to_typed_catalog(obj:object, typed_catalog:dict) -> dict:
-        if type(obj) not in typed_catalog: typed_catalog[type(obj)] = []
-        if obj not in typed_catalog[type(obj)]: typed_catalog[type(obj)][obj.mRID] = obj
+        if type(obj) not in typed_catalog:
+            typed_catalog[type(obj)] = {}
+        if obj.mRID not in typed_catalog[type(obj)]:
+            typed_catalog[type(obj)][obj.mRID] = obj
         return typed_catalog
     
     def get_all_by_type(typed_catalog:dict, obj_type:type) -> list[object]:
@@ -72,15 +79,18 @@ class DistributedModel:
     # Initialize all CIM objects not contained in a switch area
     #def initialize_substation_equipment(feeder_mrid) -> dict(str,object):
         # for feeder_index in range(len(self.topo_message['feeders'])) #implement later
-        addr_equip = initialize_objects(self.feeder.mRID, self.topo_message['feeders']['addressable_equipment'])
-        for obj in addr_equip: DistributedModel.add_to_catalog(obj, self.addressable_equipment)
-        for obj in addr_equip: DistributedModel.add_to_typed_catalog(obj, self.typed_catalog)
+        addr_equip = create_default_instances(self.feeder.mRID, self.topo_message['feeders']['addressable_equipment'])
+        for obj in addr_equip: 
+            DistributedModel.add_to_catalog(obj, self.addressable_equipment)
+            DistributedModel.add_to_typed_catalog(obj, self.typed_catalog)
         unaddr_equip = initialize_objects(self.feeder.mRID, self.topo_message['feeders']['unaddressable_equipment'])
-        for obj in unaddr_equip: DistributedModel.add_to_catalog(obj, self.unaddressable_equipment)
-        for obj in unaddr_equip: DistributedModel.add_to_typed_catalog(obj, self.typed_catalog)
+        for obj in unaddr_equip: 
+            DistributedModel.add_to_catalog(obj, self.unaddressable_equipment)
+            DistributedModel.add_to_typed_catalog(obj, self.typed_catalog)
         conn_nodes = initialize_objects(self.feeder.mRID, self.topo_message['feeders']['connectivity_node'])
-        for obj in conn_nodes: DistributedModel.add_to_catalog(obj, self.connectivity_nodes)
-        for obj in conn_nodes: DistributedModel.add_to_typed_catalog(obj, self.typed_catalog)
+        for obj in conn_nodes: 
+            DistributedModel.add_to_catalog(obj, self.connectivity_nodes)
+            DistributedModel.add_to_typed_catalog(obj, self.typed_catalog)
 
     # Initialize all CIM objects in a single switch area
     #def initialize_switch_areas(feeder_mrid) -> dict(str,object):
@@ -101,5 +111,3 @@ class DistributedModel:
     
     def get_object(self, mrid) -> object:
         return self.catalog[mrid]
-
-    
