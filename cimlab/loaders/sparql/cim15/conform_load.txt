@@ -1,0 +1,24 @@
+
+PREFIX r:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX cim:  <http://iec.ch/TC57/2011/CIM-schema-cim15#>
+SELECT ?sub_name ?mRID ?name ?volt_name ?pfixed ?qfixed
+
+WHERE {
+ ?eq r:type cim:ConformLoad.
+  ?eq cim:Equipment.EquipmentContainer ?fdr.
+  ?fdr cim:IdentifiedObject.name ?volt_name.
+  ?eq cim:IdentifiedObject.mRID ?mRID.
+  ?eq cim:IdentifiedObject.name ?name.
+  ?fdr cim:VoltageLevel.Substation ?sub.
+  ?sub cim:IdentifiedObject.name ?sub_name.
+                                 
+  ?eq cim:EnergyConsumer.pfixed ?pfixed.
+  ?eq cim:EnergyConsumer.qfixed ?qfixed.
+
+  
+  FILTER regex(STR(?name), "34.5")
+                               
+  }
+  GROUP by ?sub_name ?mRID ?name ?volt_name ?pfixed ?qfixed
+
+  ORDER by  ?volt_name ?name

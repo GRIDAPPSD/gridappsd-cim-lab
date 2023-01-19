@@ -1,0 +1,11 @@
+PREFIX r:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX cim:  <http://iec.ch/TC57/2011/CIM-schema-cim15#>
+SELECT ?name ?mRID
+WHERE {
+ ?eq r:type cim:Substation.
+ ?eq cim:IdentifiedObject.name ?name.
+ ?eq cim:IdentifiedObject.mRID ?mRID.
+
+}
+
+ORDER by ?name
