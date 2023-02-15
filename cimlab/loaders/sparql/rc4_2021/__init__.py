@@ -1,4 +1,5 @@
 from cimlab.loaders.sparql.rc4_2021.get_class_type import get_class_type_sparql
+from cimlab.loaders.sparql.rc4_2021.get_class_objects import get_class_objects_sparql
 #a
 import cimlab.loaders.sparql.rc4_2021.ac_dc_terminal as ACDCTerminalSPARQL
 import cimlab.loaders.sparql.rc4_2021.ac_line_segment as ACLineSegmentSPARQL

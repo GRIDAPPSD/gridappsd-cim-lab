@@ -59,18 +59,46 @@ class BlazegraphConnection(ConnectionInterface):
                 _log.warning('object class missing from data profile:' + str(cls))
         return object_list
     
+    def create_default_objects(self, feeder_mrid: str | cim.Feeder, typed_catalog: dict[type, dict[str, object]], class_name:str):
+        """
+        Creates empty CIM objects with the correct class type with mRID and name fields populated based on class type
+        Args:
+            feeder_mrid (str | Feeder object): The mRID of the feeder or feeder object
+            typed_catalog (dict[type, dict[str, object]]): The typed catalog of CIM objects organized by 
+            class type and object mRID
+            cim_class (type): The CIM class type (e.g. cim:ACLineSegment)
+        Returns:
+            none
+        """
+        try:
+            class_type = eval(f"self.cim.{class_name}")
+        except:
+            _log.warning('object class missing from data profile:' + str(class_name))
+            
+        #generate correct sparql message using create_default.py
+        sparql_message = self.sparql.get_class_objects_sparql(feeder_mrid, class_name)
+        #execute sparql query
+        query_output = self.execute(sparql_message)
+        # parse query results and add new CIM objects to list
+
+        for result in query_output['results']['bindings']:
+           # print(result)
+            mRID = result['mRID']['value']
+            name = result['name']['value']
+            result = self.create_object(typed_catalog, class_type, mRID)
+            result.name = name
+            
     
-          
     def get_all_attributes(self, feeder_mrid: str | cim.Feeder, typed_catalog: dict[type, dict[str, object]], cim_class: type):
         """ Populates all available attribute fields of CIM objects in the typed catalog of a specified CIM class. 
         Objects are stored in memory, so no values are returned.
         Args:
-        feeder_mrid (str | Feeder object): The mRID of the feeder or feeder object
-        typed_catalog (dict[type, dict[str, object]]): The typed catalog of CIM objects organized by 
+            feeder_mrid (str | Feeder object): The mRID of the feeder or feeder object
+            typed_catalog (dict[type, dict[str, object]]): The typed catalog of CIM objects organized by 
             class type and object mRID
-        cim_class (type): The CIM class type (e.g. cim:ACLineSegment)
+            cim_class (type): The CIM class type (e.g. cim:ACLineSegment)
         Returns:
-        none
+            none
         """
         #generate SPARQL message from correct loaders>sparql python script based on class name
         sparql_message = self.get_attributes_query(feeder_mrid, typed_catalog, cim_class)

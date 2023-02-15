@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import List, Dict, Optional
 from dataclasses import dataclass, field
 import cimlab.data_profile.rc4_2021 as cim
-def get_all_attributes(feeder_mrid: str, typed_catalog: dict[type, dict[str, object]]) -> str: 
+def get_all_attributes(feeder_mrid: str, typed_catalog: dict[type, dict[str, object]], asset_filter = True) -> str: 
     """ Generates SPARQL query string for a given catalog of objects and feeder id
     Args:
         feeder_mrid (str | Feeder object): The mRID of the feeder or feeder object
@@ -13,7 +13,6 @@ def get_all_attributes(feeder_mrid: str, typed_catalog: dict[type, dict[str, obj
     """
 
     mrid_list = list(typed_catalog[cim.ACLineSegmentPhase].keys())
-    asset_list = list(typed_catalog[cim.ACLineSegment].keys())
     
     query_message = """
         PREFIX r:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -24,15 +23,19 @@ def get_all_attributes(feeder_mrid: str, typed_catalog: dict[type, dict[str, obj
           ?eq r:type cim:ACLineSegmentPhase.
           VALUES ?fdrid {"%s"}
           VALUES ?mRID {"""%feeder_mrid
+    
     # add all equipment mRID
     for mrid in mrid_list:
         query_message += ' "%s" \n'%mrid
+    
+    if asset_filter:    
+        asset_list = list(typed_catalog[cim.ACLineSegment].keys())
         
-    # add all assets
-    query_message += """               }
-        VALUES ?ACLineSegment {"""
-    for asset_mrid in asset_list:
-        query_message += ' "%s" \n' % asset_mrid
+        # add all assets
+        query_message += """               }
+            VALUES ?ACLineSegment {"""
+        for asset_mrid in asset_list:
+            query_message += ' "%s" \n' % asset_mrid
         
     # add all attributes
     query_message += """               } 

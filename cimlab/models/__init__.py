@@ -1,4 +1,5 @@
 from typing import List, Dict
+from cimlab.models.centralized_model import CentralizedModel
 from cimlab.models.distributed_model import DistributedModel
 from cimlab.models.switch_area import SwitchArea
 from cimlab.models.secondary_area import SecondaryArea
